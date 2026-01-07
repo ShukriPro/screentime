@@ -50,8 +50,6 @@
 		F68741B12F07B6E400B6B308 /* Exceptions for "timescreen" folder in "DeviceActivityReportExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				AppGroupStore.swift,
-				AppPickerView.swift,
 				DeviceActivityContext.swift,
 			);
 			target = F687419B2F07B64800B6B308 /* DeviceActivityReportExtension */;

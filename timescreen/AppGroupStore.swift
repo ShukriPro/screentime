@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import FamilyControls
 
 
 enum AppGroupStore {
@@ -15,21 +14,4 @@ enum AppGroupStore {
         suiteName: "group.com.justshukri.timescreen"
     )!
 
-    static func save(tokens: Set<ApplicationToken>) {
-        let data = try? JSONEncoder().encode(tokens)
-        suite.set(data, forKey: "selectedApps")
-    }
-
-    static func load() -> Set<ApplicationToken> {
-        guard
-            let data = suite.data(forKey: "selectedApps"),
-            let tokens = try? JSONDecoder().decode(
-                Set<ApplicationToken>.self,
-                from: data
-            )
-        else {
-            return []
-        }
-        return tokens
-    }
 }

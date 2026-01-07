@@ -9,51 +9,74 @@ import FamilyControls
 import DeviceActivity
 
 struct ContentView: View {
-
     @State private var selection = FamilyActivitySelection()
-
+    @State private var isPickerPresented = false
+    
     var body: some View {
-        VStack(spacing: 16) {
-
-            // 1) App picker (user selects apps like Instagram)
-            FamilyActivityPicker(selection: $selection)
-                .frame(height: 300)
-
-            // 2) Report showing usage (filtered by date)
+        VStack(spacing: 20) {
+            // Button to open app picker
+            Button {
+                isPickerPresented = true
+            } label: {
+                Label("Select Apps", systemImage: "app.badge.checkmark")
+                    .font(.headline)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            
+            // Show selected app count
+            if !selection.applicationTokens.isEmpty {
+                Text("\(selection.applicationTokens.count) app(s) selected")
+                    .foregroundColor(.secondary)
+            }
+            
+            // Report showing usage filtered by selected apps
             DeviceActivityReport(
                 .totalActivity,
-                filter: todayFilter
+                filter: makeFilter()
             )
+            .frame(maxHeight: .infinity)
         }
         .padding()
-        // 3) Save selected apps to App Group for the extension
-        .onChange(of: selection) { _, newValue in
-            AppGroupStore.save(tokens: newValue.applicationTokens)
-        }
-        // 4) Request Screen Time permission once
+        .familyActivityPicker(
+            isPresented: $isPickerPresented,
+            selection: $selection
+        )
         .task {
             await requestPermission()
         }
     }
-
-    // REQUIRED: tells iOS WHICH time range to fetch
-    private var todayFilter: DeviceActivityFilter {
+    
+    private func makeFilter() -> DeviceActivityFilter {
         let start = Calendar.current.startOfDay(for: Date())
         let end = Date()
         let interval = DateInterval(start: start, end: end)
-
+        
+        // If no apps/categories selected, show all activity
+        if selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty {
+            return DeviceActivityFilter(
+                segment: .daily(during: interval),
+                users: .all,
+                devices: .all
+            )
+        }
+        
+        // Filter by selected apps and categories
         return DeviceActivityFilter(
             segment: .daily(during: interval),
             users: .all,
-            devices: .all
+            devices: .all,
+            applications: selection.applicationTokens,
+            categories: selection.categoryTokens
         )
     }
-
-    // REQUIRED: Screen Time permission
+    
     @MainActor
     private func requestPermission() async {
         try? await AuthorizationCenter.shared
             .requestAuthorization(for: .individual)
     }
 }
-
